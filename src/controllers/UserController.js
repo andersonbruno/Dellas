@@ -5,9 +5,7 @@ const bcryptjs = require('bcryptjs');
 module.exports = {
     async index(req, res) {
         const users = await User.findAll({
-            attributes: {
-                exclude: ['password','passwordResetToken','passwordResetExpires']
-            }
+            include: { association: 'profiles' }
         });
         
         return res.json(users);
@@ -32,7 +30,7 @@ module.exports = {
         const hash = await bcryptjs.hash(password, 10);
 
         const user = await User.create({
-            login, password: hash, name, email
+            login, password: hash, name, email, profile_id: 2
         });
 
         user.password = undefined;
