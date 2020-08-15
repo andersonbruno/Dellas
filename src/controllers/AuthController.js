@@ -62,7 +62,7 @@ module.exports = {
                 text: `Você esqueceu sua senha? Não tem problema, utilize esse token: ${token}`,
                 //html: `<p>Você esqueceu sua senha? Não tem problema, utilize esse token: ${token}</p>`
                 template: '/auth/forgot_password',
-                context: { token }
+                context: { token, name: 'Anderson' }
             },(err) => {
                 if(err){
                     console.log(err);
