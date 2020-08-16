@@ -24,6 +24,10 @@ module.exports = {
             return res.status(400).send({ error: 'Invalid password'});
         }
 
+        if(!user.isActivated){
+            return res.status(400).send({ error: 'User is not activated'});
+        }
+
         const token = jwt.sign({ id: user.id }, authConfig.secret, {
             expiresIn: 86400,
         });
@@ -58,9 +62,7 @@ module.exports = {
             mailer.sendMail({
                 to: email,
                 from: 'noreply@dellas.com.br',
-                subject: 'Message',
-                text: `Você esqueceu sua senha? Não tem problema, utilize esse token: ${token}`,
-                //html: `<p>Você esqueceu sua senha? Não tem problema, utilize esse token: ${token}</p>`
+                subject: 'Redefinição de senha',
                 template: '/auth/forgot_password',
                 context: { token, name: 'Anderson' }
             },(err) => {
@@ -71,7 +73,7 @@ module.exports = {
                 }
 
                 return res.send();
-            })
+            });
         } catch (err) {
             console.log(err);
 
@@ -84,8 +86,6 @@ module.exports = {
 
         try{
             const user = await User.findOne({ where: { login: login }});
-
-            console.log(user);
 
             if(!user){
                 return res.status(400).send({ error: 'User not found'});
@@ -110,6 +110,38 @@ module.exports = {
             res.send();
         } catch (err) { 
             res.status(400).send({ error: 'Cannot reset password, try again'});
+        }
+    },
+
+    async activeUser(req,res) {
+        const { login, token } = req.body;
+
+        try{
+            const user = await User.findOne({ where: { login: login }});
+
+            if(!user){
+                return res.status(400).send({ error: 'User not found'});
+            }
+
+            if(token !== user.passwordResetToken){
+                return res.status(400).send({ error: 'Token invalid'});
+            }
+
+            const now = new Date();
+
+            if( now > user.passwordResetExpires){
+                return res.status(400).send({ error: 'Token expired, generate a new one'});
+            }
+
+            user.isActivated = true;
+
+            await user.save();
+
+            res.send();
+        } catch (err) { 
+            console.log(err);
+
+            res.status(400).send({ error: 'Cannot activate user, try again'});
         }
     }
 };

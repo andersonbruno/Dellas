@@ -9,6 +9,7 @@ class User extends Model {
             email: DataTypes.STRING,
             passwordResetToken: DataTypes.STRING,
             passwordResetExpires: DataTypes.DATE,
+            isActivated: DataTypes.BOOLEAN,
         },{
             sequelize
         })
